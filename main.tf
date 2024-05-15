@@ -1,14 +1,52 @@
 provider "aws" {
-   region = "ap-south-1"
+   region = "us-east-1"
 }
 
-#Configuration of EC2 instance
-resource "aws_instance" "demo_server" {
- ami = "ami-id"
- instance_type = "t2.micro"
+#----------
+#Create VPC
+#----------
+
+resource "aws_vpc" "retail_vpc" {
+  cidr = var.cidr
+  enable_dns_hostnames = true
+  tags = {
+     Name = "AWS VPC for Retail NorthAmerica"
+  } 
 }
 
-#Configuration of S3 bucket
-resource "aws_s3_bucket" "demo_bucket" {
-   bucket = "Sample Bucket"
+
+#-------------------------
+# Get list of AZ in region
+#-------------------------
+
+data "aws_availability_zones" "all" {}
+
+#--------------------
+#Create Public Subnet
+#--------------------
+
+resource "aws_subnet" "retail_public" {
+
+  vpc_id = aws_vpc.retail_vpc.id
+  cidr = var.subnet1_cidr
+  availability_zone = data.aws_availability_zones.all.names[0]
+  tags = {
+    name = "Public subnet for Retail"
+  }
 }
+
+resource "aws_internet_gateway" "retail_igw" {
+   vpc_id = aws_vpc.aws.id
+   tags = {
+    name = "Retail InternetGateway"
+   }
+}
+
+
+
+
+
+
+
+
+
