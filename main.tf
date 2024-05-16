@@ -87,5 +87,46 @@ resource "aws_launch_configuration" "retail_launch_config" {
    }
 }
 
+resource "aws_autoscaling_group" "retail_asg" {
+
+   name = "Retail AutoScaling group"
+   launch_configuration = aws_launch_configuration.retail_launch_config.id
+   availability_zones = data.aws_availability_zones.all.names
+
+# Minimum and Maxium server for ASG
+   min_size = 2
+   max_size = 10
+
+   load_balancers = [aws_elb.retail_elb.name]
+   health_check_type = "ELB"
+
+   tag {
+     key = "Name"
+     value = "Walmart Retail"
+     propagate_at_launch = true
+   }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
