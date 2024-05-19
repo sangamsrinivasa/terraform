@@ -7,7 +7,7 @@ provider "aws" {
 #----------
 
 resource "aws_vpc" "retail_vpc" {
-  cidr = var.cidr
+  cidr_block = var.vpc-cidr
   enable_dns_hostnames = true
   tags = {
      Name = "AWS VPC for Walmart Retail NorthAmerica"
@@ -19,7 +19,12 @@ resource "aws_vpc" "retail_vpc" {
 # Get list of AZ in region
 #-------------------------
 
-data "aws_availability_zones" "all" {}
+
+
+data "aws_availability_zones" "all" {
+  state = "available"
+}
+
 
 #--------------------
 #Create Public Subnet
@@ -28,7 +33,7 @@ data "aws_availability_zones" "all" {}
 resource "aws_subnet" "retail_public" {
 
   vpc_id = aws_vpc.retail_vpc.id
-  cidr = var.subnet1_cidr
+  cidr_block = var.subnet1_cidr
   availability_zone = data.aws_availability_zones.all.names[0]
   tags = {
     name = "Public subnet for Retail"
@@ -41,7 +46,7 @@ resource "aws_subnet" "retail_public" {
 
 resource "aws_subnet" "retail_private" {
     vpc_id = aws_vpc.retail_vpc.id
-    cidr == var.subnet2_cidr
+    cidr_block = var.subnet2_cidr
     availability_zone = data.aws_availability_zones.all.names[1]
     tags = {
         name = "Private subnet for Retail"
@@ -68,7 +73,7 @@ resource "aws_internet_gateway" "retail_igw" {
 resource "aws_route_table" "retail_public_route" {
    vpc_id = aws_vpc.retail_vpc.id
 
-   route = {
+   route {
       cidr_block = "0.0.0.0/0"
       gateway_id = aws_internet_gateway.retail_igw.id
    }
@@ -82,13 +87,13 @@ resource "aws_route_table" "retail_public_route" {
 # Create private Route Table
 #---------------------------
 
-resource "aws_route_table" "retail_private_route" {
-     vpc_id = aws_vpc.retail_vpc.id
-     route = {
-     cidr_block = "0.0.0.0/0"
-     instance_id = aws_instance.uatServer.id
-     }
-}
+#resource "aws_route_table" "retail_private_route" {
+#     vpc_id = aws_vpc.retail_vpc.id
+#     route {
+#     cidr_block = "0.0.0.0/0"
+#     instance_id = aws_instance.uatServer.id
+#     }
+#}
 
 
 #-----------------------------------------
@@ -96,9 +101,9 @@ resource "aws_route_table" "retail_private_route" {
 #-----------------------------------------
 
 
-resource "aws_route_table_assoiciation" "retail_east1_public" {
+resource "aws_route_table_association" "retail_east1_public" {
      subnet_id = aws_subnet.retail_public.id
-     route_table_id = aws_route_table_retail_public_route.id
+     route_table_id = aws_route_table.retail_public_route.id
 
 }
 
@@ -107,10 +112,10 @@ resource "aws_route_table_assoiciation" "retail_east1_public" {
 # Assoicate Private Routetable with Subnet
 #-----------------------------------------
 
-resource "aws_route_table_assoication" "retail_east1_private" {
-    subnet_id = aws_subnet.retail_private.id
-    route_table_id = aws_route_table_retail_private_route.id
-}
+# resource "aws_route_table_association" "retail_east1_private" {
+#    subnet_id = aws_subnet.retail_private.id
+#    route_table_id = aws_route_table.retail_private_route.id
+#}
 
 
 
@@ -131,7 +136,7 @@ resource "aws_security_group" "retail_sg" {
 
      from_port = 0
      to_port = 0
-     protocal = -1
+     protocol = -1
      cidr_blocks = ["0.0.0.0/0"]
    }
 
@@ -140,7 +145,7 @@ resource "aws_security_group" "retail_sg" {
    
      from_port = 22
      to_port = 22
-     protocal = "tcp"
+     protocol = "tcp"
      cidr_blocks = ["0.0.0.0/0"]
    }
 }
@@ -154,28 +159,26 @@ resource "aws_security_group" "retail_sg_db" {
     egress {
      from_port = 0
      to_port = 0
-     protocal = "-1"
+     protocol = "-1"
      cidr_blocks = ["0.0.0.0/0"]
     }
     ingress {
       from_port = 3306
       to_port = 3306
-      protocal = "tcp"
+      protocol = "tcp"
       security_groups = [aws_security_group.retail_sg.id]
-
+    }
 }
 
-
-
 resource "aws_instance" "devServer" {
-    ami = var.amiid
+    ami = var.ami-id
     instance_type = var.type
-    key_name = var.pemfile
+#    key_name = var.pemfile
     vpc_security_group_ids = [aws_security_group.retail_sg.id]
     subnet_id = aws_subnet.retail_public.id
-    availability_zone = data.aws_availability_zone.all.names[0]
+    availability_zone = data.aws_availability_zones.all.names[0]
  
-    assoiciate_public_ip_address = true
+    associate_public_ip_address = true
 
     user_data = <<-EOF
                    #!/bin/bash
@@ -187,12 +190,12 @@ resource "aws_instance" "devServer" {
 }
 
 resource "aws_instance" "dbServer" {
-   ami = var.amiid
+   ami = var.ami-id
    instance_type = var.type
-   key_name = var.pemfile
+#   key_name = var.pemfile
    vpc_security_group_ids = [aws_security_group.retail_sg_db.id]
    subnet_id = aws_subnet.retail_private.id
-   availability_zone = data.aws_availability_zone.all.names[1]
+   availability_zone = data.aws_availability_zones.all.names[1]
 
    associate_public_ip_address = true
 
@@ -206,3 +209,21 @@ resource "aws_instance" "dbServer" {
    }
 }
 
+resource "aws_instance" "uatServer" {
+    ami = var.ami-id
+    instance_type = var.type
+#    key_name = var.pemfile
+    vpc_security_group_ids = [aws_security_group.retail_sg.id]
+    subnet_id = aws_subnet.retail_public.id
+    availability_zone = data.aws_availability_zones.all.names[0]
+
+    associate_public_ip_address = true
+
+    user_data = <<-EOF
+                   #!/bin/bash
+                   touch /tmp/instance_creation.txt
+                   EOF
+    tags = {
+       name = "Retail UAT Server"
+    }
+}
