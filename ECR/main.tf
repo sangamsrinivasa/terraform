@@ -19,7 +19,7 @@ variable "repo_names" {
 
 # ecr.tf | Elastic Container Repository
 
-resource "aws_ecr_repository" "banking-ecr" {
+resource "aws_ecr_repository" "digital-ecr" {
   name = "${var.app_name}-${var.app_environment}-ecr"
   tags = {
     Name        = "${var.app_name}-ecr"
