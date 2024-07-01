@@ -43,7 +43,6 @@ resource "aws_instance" "example" {
   tags = {
     Name = "example-instance"
   }
-}
 
 # Provision script to install Oracle SQL (replace with your actual installation script)
 provisioner "remote-exec" {
@@ -57,5 +56,5 @@ provisioner "remote-exec" {
     private_key = file("~/.ssh/your-key-pair.pem")  # Path to your SSH private key
     host        = aws_instance.example.public_ip
   }
+ }
 }
-

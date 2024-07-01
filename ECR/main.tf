@@ -29,13 +29,13 @@ resource "aws_ecr_repository" "digital-ecr" {
 
 #Create private repositary for each application
 
-resource "aws_ecr_repositary" "webapp-ecr" {
+resource "aws_ecr_repository" "webapp-ecr" {
   count = length(var.repo_names)
   name = var.repo_names[count.index]
   #Allows tag over-writing
   image_tag_mutability = "MUTABLE"
 
-  image_scaning_configuration {
+  image_scanning_configuration {
    scan_on_push = true
   }
 }

@@ -49,31 +49,35 @@ resource "aws_msk_cluster" "kafka_cluster" {
 
   broker_node_group_info {
     instance_type = "kafka.m5.large"
-    ebs_volume_size = 100
     client_subnets = [
       aws_subnet.subnet1.id,
       aws_subnet.subnet2.id,
       aws_subnet.subnet3.id,
     ]
-    security_groups = [aws_security_group.kafka_sg.id]
-  }
-
-  encryption_info {
+    storage_info {
+      ebs_storage_info {
+        provisioned_throughput {
+          enabled           = true
+          volume_throughput = 250
+        }
+        volume_size = 100
+      }
+    }
+  security_groups = [aws_security_group.kafka_sg.id]
+ }
+ encryption_info {
     encryption_in_transit {
       client_broker = "TLS"
       in_cluster    = true
     }
-  }
-
-  configuration_info {
+ }
+ 
+ configuration_info {
     arn      = aws_msk_configuration.kafka_configuration.arn
     revision = aws_msk_configuration.kafka_configuration.latest_revision
   }
-
-  tags = {
-    Name = "kafka-cluster"
-  }
 }
+
 
 resource "aws_msk_configuration" "kafka_configuration" {
   name = "example-kafka-configuration"
