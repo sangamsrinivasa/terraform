@@ -83,7 +83,7 @@ resource "aws_launch_configuration" "retail_launch_config" {
 
    #When using launch configuration with in ASG, please set below details
    lifecycle {
-     create_before_destory = true
+     create_before_destroy = true
    }
 }
 
