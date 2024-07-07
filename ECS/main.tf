@@ -2,6 +2,21 @@ provider "aws" {
   region = "us-east-1"
 }
 
+resource "aws_vpc" "nam_dev" {
+  cidr_block = var.vpc-cidr
+  enable_dns_hostnames = true
+  tags = {
+     Name = "AWS VPC for NAM"
+  } 
+}
+
+resource "aws_subnet" "dev_subnet" {
+  vpc_id = aws_vpc.nam_dev.id
+  cidr_block = var.subnet1_cidr
+  availability_zone = "us-east-1a"
+
+}
+
 resource "aws_ecs_cluster" "ecs_dev" {
   name = "ecs-dev-cluster"
 }
@@ -85,7 +100,7 @@ resource "aws_ecs_service" "example" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = aws_subnet.dev_subnet.id
+    subnets          = [aws_subnet.dev_subnet.id]
     security_groups  = [aws_security_group.ecs_service.id]
     assign_public_ip = true
   }
