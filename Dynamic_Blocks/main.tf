@@ -29,3 +29,13 @@ resource "aws_security_group" "example" {
     }
   }
 }
+
+resource "aws_instance" "example" {
+  count         = length(var.instances)
+  ami           = var.instances[count.index].ami
+  instance_type = var.instances[count.index].instance_type
+  key_name      = var.instances[count.index].key_name
+  subnet_id     = var.instances[count.index].subnet_id
+
+  tags = var.instances[count.index].tags
+}

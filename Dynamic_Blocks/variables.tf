@@ -28,3 +28,29 @@ variable "security_group_rules" {
   ]
 }
 
+variable "instances" {
+  type = list(object({
+    ami           = string
+    instance_type = string
+    key_name      = string
+    subnet_id     = string
+    tags          = map(string)
+  }))
+  default = [
+    {
+      ami           = "ami-12345678"
+      instance_type = "t2.micro"
+      key_name      = "my-key"
+      subnet_id     = "subnet-12345678"
+      tags          = { Name = "Instance1" }
+    },
+    {
+      ami           = "ami-87654321"
+      instance_type = "t2.small"
+      key_name      = "my-key"
+      subnet_id     = "subnet-87654321"
+      tags          = { Name = "Instance2" }
+    }
+  ]
+}
+
