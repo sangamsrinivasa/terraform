@@ -363,7 +363,6 @@ resource "aws_instance" "NAM_Tomcat_instance_1b" {
     instance_type = var.type
     vpc_security_group_ids = [aws_security_group.nam_sg.id]
     subnet_id = aws_subnet.nam_prv_subnet_1b.id
-    availability_zone = "us-east-1b"
  
     associate_public_ip_address = true
 
